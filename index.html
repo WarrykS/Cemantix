@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cémantix entre amis</title>
+  <meta name="description" content="Trouvez le mot secret du jour grâce à la proximité sémantique, et comparez-vous à vos amis.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Cémantix <span>entre amis</span></h1>
+    <div class="who">
+      <span id="puzzle-label"></span>
+      <button id="pseudo-btn" class="link" type="button"></button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="play" type="button">Jouer</button>
+      <button class="tab" data-tab="today" type="button">Classement du jour</button>
+      <button class="tab" data-tab="history" type="button">Historique</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Jouer -->
+    <section id="tab-play" class="panel active">
+      <p id="status" class="status">Chargement du mot du jour…</p>
+
+      <form id="guess-form" autocomplete="off" hidden>
+        <input id="guess-input" type="text" placeholder="Proposez un mot" autocapitalize="off" spellcheck="false" maxlength="40" aria-label="Votre proposition">
+        <button type="submit">Envoyer</button>
+      </form>
+      <p id="message" class="message" aria-live="polite"></p>
+
+      <div id="win" class="win" hidden></div>
+
+      <table id="guesses" class="guesses" hidden>
+        <thead>
+          <tr><th>N°</th><th>Mot</th><th>°C</th><th></th><th>Progression</th></tr>
+        </thead>
+        <tbody id="last-guess" class="last"></tbody>
+        <tbody id="guess-list"></tbody>
+      </table>
+
+      <details class="help">
+        <summary>Comment jouer ?</summary>
+        <p>Le but est de trouver le mot secret du jour. Chaque proposition reçoit une <strong>température</strong> :
+        plus elle est élevée, plus votre mot est proche du sens du mot secret (100&nbsp;°C = trouvé).</p>
+        <p>Si votre mot fait partie des 1000 mots les plus proches, une <strong>progression</strong> sur 1000 s'affiche
+        (999 = le mot le plus proche).</p>
+        <p>🧊 glacial · 🥶 froid · 😎 dans le top 1000 · 🥵 top 100 · 🔥 top 10 · 😱 le plus proche · 🥳 trouvé !</p>
+        <p>Un nouveau mot chaque jour à minuit (heure de Paris). Votre résultat est enregistré dans l'historique du groupe.</p>
+      </details>
+
+      <p class="yesterday"><button id="yesterday-btn" class="link" type="button">Voir le mot d'hier</button> <span id="yesterday-word"></span></p>
+    </section>
+
+    <!-- Classement du jour -->
+    <section id="tab-today" class="panel">
+      <h2>Ils ont trouvé aujourd'hui</h2>
+      <p class="hint">Le mot n'est pas affiché ici, pas de spoiler 😉</p>
+      <div id="today-board"></div>
+    </section>
+
+    <!-- Historique -->
+    <section id="tab-history" class="panel">
+      <h2>Historique des trouvailles</h2>
+      <label class="filter">Joueur :
+        <select id="player-filter"><option value="">Tout le monde</option></select>
+      </label>
+      <div id="stats"></div>
+      <div id="history-list"></div>
+    </section>
+  </main>
+
+  <dialog id="pseudo-dialog">
+    <form method="dialog" id="pseudo-form">
+      <h2>Ton pseudo</h2>
+      <p>Il sert à retrouver ton historique et à te classer avec tes amis. Utilise le même sur tous tes appareils.</p>
+      <input id="pseudo-input" type="text" maxlength="24" required placeholder="Ex. : Camille" autocomplete="nickname">
+      <div class="actions"><button type="submit">Valider</button></div>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
