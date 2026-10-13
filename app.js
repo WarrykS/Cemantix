@@ -2,6 +2,7 @@
 
 const CFG = window.CEMANTIX_CONFIG;
 const TOP = 1000;
+const DATA_VERSION = 2; // à incrémenter après chaque régénération de data/
 const $ = (id) => document.getElementById(id);
 
 // ---------- Utilitaires ----------
@@ -79,7 +80,7 @@ let wordIndex = new Map();
 let accentless = new Map();
 
 async function loadVocab() {
-  const res = await fetch("data/vocab.txt");
+  const res = await fetch(`data/vocab.txt?v=${DATA_VERSION}`);
   if (!res.ok) throw new Error("vocabulaire introuvable");
   vocab = (await res.text()).split("\n");
   vocab.forEach((w, i) => {
@@ -90,7 +91,7 @@ async function loadVocab() {
 }
 
 async function loadDay(n) {
-  const res = await fetch(`data/days/${n}.bin.gz`);
+  const res = await fetch(`data/days/${n}.bin.gz?v=${DATA_VERSION}`);
   if (!res.ok) return null;
   let buf = await res.arrayBuffer();
   const head = new Uint8Array(buf, 0, 2);
@@ -158,7 +159,7 @@ async function saveResult(game) {
       showMessage("Impossible d'enregistrer ton résultat pour l'instant, nouvel essai au prochain chargement.");
     }
   }
-  store.set(`cx_game_${game.puzzle}`, game);
+  saveGame(game);
   renderWin();
 }
 
@@ -168,6 +169,19 @@ const state = { puzzle: 0, day: null, game: null, last: null, fresh: null };
 
 function newGame(puzzle) {
   return { puzzle, guesses: [], found: false, start: Date.now(), end: null, saved: false };
+}
+
+// Les propositions sont sauvegardées sous forme de mots (et non de positions dans le
+// vocabulaire) pour survivre à une régénération des données.
+function saveGame(game) {
+  store.set(`cx_v2_game_${game.puzzle}`, { ...game, guesses: game.guesses.map((g) => vocab[g.i]) });
+}
+
+function loadGame(puzzle) {
+  const saved = store.get(`cx_v2_game_${puzzle}`, null);
+  if (!saved) return newGame(puzzle);
+  const guesses = saved.guesses.filter((w) => wordIndex.has(w)).map((w) => ({ i: wordIndex.get(w) }));
+  return { ...saved, guesses };
 }
 
 function showMessage(text) {
@@ -300,7 +314,7 @@ function submitGuess(raw) {
       game.end = Date.now();
       $("guess-form").hidden = true;
     }
-    store.set(`cx_game_${game.puzzle}`, game);
+    saveGame(game);
   }
   renderGuesses();
   if (game.found) {
@@ -476,7 +490,7 @@ async function init() {
     return;
   }
   $("status").textContent = `Mot secret n°${state.puzzle} — ${puzzleDate(state.puzzle)}`;
-  state.game = store.get(`cx_game_${state.puzzle}`, null) || newGame(state.puzzle);
+  state.game = loadGame(state.puzzle);
   $("guess-form").hidden = state.game.found;
   renderGuesses();
   renderWin();
