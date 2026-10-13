@@ -156,6 +156,57 @@ tr.me td { background: var(--accent-soft); font-weight: 600; }
   font-variant-numeric: tabular-nums;
 }
 
+/* Barre qui chauffe : reflet à partir de 900, flammes et halo à partir de 990 */
+.bar.grow div { animation: grow 0.7s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.bar.hot div {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #f08c00, #e8590c);
+}
+.bar.hot div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.55) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: shine 1.8s ease-in-out infinite;
+}
+.bar.burning div { background: linear-gradient(90deg, #f76707, #e03131, #f76707); background-size: 200% 100%; animation: flames 1.2s linear infinite; }
+.bar.burning.grow div { animation: grow 0.7s cubic-bezier(0.2, 0.8, 0.3, 1), flames 1.2s linear infinite; }
+.bar.burning div::after { animation-duration: 1s; }
+.bar.burning { animation: glow 0.9s ease-in-out infinite alternate; overflow: visible; }
+.bar.burning > div { border-radius: 4px; }
+.bar.hot span, .bar.burning span { color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+
+.pop { display: inline-block; animation: pop 0.6s ease-out; }
+
+@keyframes grow { from { width: 0; } }
+@keyframes shine { to { transform: translateX(100%); } }
+@keyframes flames { to { background-position: -200% 0; } }
+@keyframes glow {
+  from { box-shadow: 0 0 2px rgba(240, 62, 62, 0.2); }
+  to { box-shadow: 0 0 10px 2px rgba(240, 62, 62, 0.75); }
+}
+@keyframes pop {
+  0% { transform: scale(0.4); }
+  60% { transform: scale(1.5) rotate(-10deg); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar, .bar div, .bar div::after, .pop { animation: none !important; }
+}
+
+.distance {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+}
+.distance span { color: var(--muted); }
+.distance.close { border-color: var(--accent); background: var(--accent-soft); }
+
 .win {
   background: var(--found);
   border: 1px solid var(--border);

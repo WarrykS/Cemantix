@@ -6,7 +6,7 @@
   <title>Cémantix entre amis</title>
   <meta name="description" content="Trouvez le mot secret du jour grâce à la proximité sémantique, et comparez-vous à vos amis.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
   <header class="top">
@@ -32,6 +32,7 @@
         <button type="submit">Envoyer</button>
       </form>
       <p id="message" class="message" aria-live="polite"></p>
+      <p id="distance" class="distance" hidden></p>
 
       <div id="win" class="win" hidden></div>
 
@@ -83,7 +84,7 @@
     </form>
   </dialog>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=2"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

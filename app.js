@@ -164,7 +164,7 @@ async function saveResult(game) {
 
 // ---------- Partie ----------
 
-const state = { puzzle: 0, day: null, game: null, last: null };
+const state = { puzzle: 0, day: null, game: null, last: null, fresh: null };
 
 function newGame(puzzle) {
   return { puzzle, guesses: [], found: false, start: Date.now(), end: null, saved: false };
@@ -174,16 +174,51 @@ function showMessage(text) {
   $("message").textContent = text;
 }
 
+// Nombre de mots plus proches du mot secret que le mot i (le mot secret compris) :
+// 1 = le mot le plus proche, il ne reste plus que la réponse.
+function distance(i) {
+  const day = state.day;
+  if (!day.dist) day.dist = new Map();
+  if (!day.dist.has(i)) {
+    const s = day.scores[i];
+    let n = 0;
+    for (let j = 0; j < day.scores.length; j++) if (day.scores[j] > s) n++;
+    day.dist.set(i, n);
+  }
+  return day.dist.get(i);
+}
+
+const fmtInt = (n) => n.toLocaleString("fr-FR");
+const motsTxt = (n) => `${fmtInt(n)} mot${n > 1 ? "s" : ""}`;
+
 function guessRow(g, n, highlight) {
   const rank = state.day.rank.get(g.i);
   const found = g.i === state.day.secret;
   const prog = rank != null ? TOP - rank : null;
+  const fresh = g.i === state.fresh;
+  const heat = found ? "" : prog >= 990 ? " hot burning" : prog >= 900 ? " hot" : "";
   const bar = prog != null
-    ? `<div class="bar"><div style="width:${prog / 10}%"></div><span>${prog}</span></div>`
+    ? `<div class="bar${heat}${fresh ? " grow" : ""}"><div style="width:${prog / 10}%"></div><span>${prog}</span></div>`
     : "";
   return `<tr class="${highlight ? "hl" : ""}${found ? " found" : ""}">
     <td>${n}</td><td>${esc(vocab[g.i])}</td><td>${fmtTemp(state.day.scores[g.i])}</td>
-    <td>${emoji(state.day.scores[g.i], rank, found)}</td><td>${bar}</td></tr>`;
+    <td><span class="${fresh && (heat || found) ? "pop" : ""}">${emoji(state.day.scores[g.i], rank, found)}</span></td><td>${bar}</td></tr>`;
+}
+
+function renderDistance() {
+  const { game, day } = state;
+  const box = $("distance");
+  if (game.found || !game.guesses.length) {
+    box.hidden = true;
+    return;
+  }
+  const best = game.guesses.reduce((a, b) => (day.scores[b.i] > day.scores[a.i] ? b : a));
+  const d = distance(best.i);
+  box.innerHTML = d === 1
+    ? `🎯 Tu es à <strong>1 mot</strong> de la réponse : « ${esc(vocab[best.i])} » est le mot le plus proche !`
+    : `🎯 Tu es à <strong>${motsTxt(d)}</strong> de la réponse <span>(meilleur mot : « ${esc(vocab[best.i])} »)</span>`;
+  box.classList.toggle("close", d <= 100);
+  box.hidden = false;
 }
 
 function renderGuesses() {
@@ -194,6 +229,8 @@ function renderGuesses() {
   $("last-guess").innerHTML = last ? guessRow(last, last.n, true) : "";
   numbered.sort((a, b) => day.scores[b.i] - day.scores[a.i]);
   $("guess-list").innerHTML = numbered.map((g) => guessRow(g, g.n, g.i === state.last)).join("");
+  state.fresh = null; // l'animation d'arrivée ne joue qu'une fois
+  renderDistance();
 }
 
 function renderWin() {
@@ -254,7 +291,10 @@ function submitGuess(raw) {
     showMessage(`« ${vocab[i]} » a déjà été proposé.`);
   } else {
     game.guesses.push({ i });
-    showMessage("");
+    state.fresh = i;
+    // L'encadré « Tu es à N mots » couvre déjà le meilleur mot : on ne détaille que les autres
+    const isBest = game.guesses.every((g) => distance(g.i) >= distance(i));
+    showMessage(isBest ? "" : `« ${vocab[i]} » est à ${motsTxt(distance(i))} de la réponse.`);
     if (i === state.day.secret && !game.found) {
       game.found = true;
       game.end = Date.now();
