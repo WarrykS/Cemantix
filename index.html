@@ -6,7 +6,7 @@
   <title>Cémantix entre amis</title>
   <meta name="description" content="Trouvez le mot secret du jour grâce à la proximité sémantique, et comparez-vous à vos amis.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <header class="top">
@@ -26,6 +26,7 @@
     <!-- Jouer -->
     <section id="tab-play" class="panel active">
       <p id="status" class="status">Chargement du mot du jour…</p>
+      <p id="login-needed" hidden><button type="button" id="login-open">Se connecter pour jouer</button></p>
 
       <form id="guess-form" autocomplete="off" hidden>
         <input id="guess-input" type="text" placeholder="Proposez un mot" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="40" aria-label="Votre proposition">
@@ -76,15 +77,18 @@
   </main>
 
   <dialog id="pseudo-dialog">
-    <form method="dialog" id="pseudo-form">
-      <h2>Ton pseudo</h2>
-      <p>Il sert à retrouver ton historique et à te classer avec tes amis. Utilise le même sur tous tes appareils.</p>
-      <input id="pseudo-input" type="text" maxlength="24" required placeholder="Ex. : Camille" autocomplete="nickname">
-      <div class="actions"><button type="submit">Valider</button></div>
+    <form id="pseudo-form">
+      <h2>Connexion</h2>
+      <p>Choisis un pseudo et un mot de passe. Si le pseudo est nouveau, ton compte est créé&nbsp;; sinon, entre ton mot de passe
+        pour retrouver ta partie et ton historique (sur n'importe quel appareil).</p>
+      <label>Pseudo<input id="pseudo-input" type="text" maxlength="24" required placeholder="Ex. : Camille" autocomplete="username" autocapitalize="off"></label>
+      <label>Mot de passe<input id="password-input" type="password" minlength="4" maxlength="72" required autocomplete="current-password"></label>
+      <p id="login-error" class="message" aria-live="polite"></p>
+      <div class="actions"><button type="submit" id="login-btn">Jouer</button></div>
     </form>
   </dialog>
 
   <script src="config.js?v=2"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
