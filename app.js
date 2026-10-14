@@ -40,11 +40,12 @@ function puzzleDate(n) {
 }
 
 function stripAccents(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe").replace(/æ/g, "ae");
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/œ/g, "oe").replace(/æ/g, "ae");
 }
 
 function normalizeInput(s) {
-  return s.trim().toLowerCase().replace(/[’']/g, "").replace(/\s+/g, "-");
+  // « l'eau » -> « eau » (le vocabulaire ne contient pas d'apostrophes)
+  return s.trim().toLowerCase().replace(/^.*[’']/, "").trim().replace(/\s+/g, "-");
 }
 
 function esc(s) {
@@ -148,13 +149,14 @@ async function saveResult(game) {
         pseudo,
         tries: game.guesses.length,
         word: vocab[state.day.secret],
-        duration_s: Math.max(0, Math.round((game.end - game.start) / 1000)),
+        duration_s: game.start ? Math.max(0, Math.round((game.end - game.start) / 1000)) : null,
       }),
     });
     game.saved = true;
   } catch (e) {
     if (e.status === 409) {
-      game.saved = true; // déjà enregistré pour ce pseudo aujourd'hui
+      game.saved = true;
+      game.conflict = true; // un résultat existe déjà pour ce pseudo aujourd'hui
     } else {
       showMessage("Impossible d'enregistrer ton résultat pour l'instant, nouvel essai au prochain chargement.");
     }
@@ -168,7 +170,7 @@ async function saveResult(game) {
 const state = { puzzle: 0, day: null, game: null, last: null, fresh: null };
 
 function newGame(puzzle) {
-  return { puzzle, guesses: [], found: false, start: Date.now(), end: null, saved: false };
+  return { puzzle, guesses: [], found: false, start: null, end: null, saved: false };
 }
 
 // Les propositions sont sauvegardées sous forme de mots (et non de positions dans le
@@ -255,7 +257,9 @@ function renderWin() {
     return;
   }
   const pseudo = store.get("cx_pseudo", "");
-  const saveInfo = game.saved
+  const saveInfo = game.conflict
+    ? `ℹ️ Un résultat était déjà enregistré aujourd'hui pour « ${esc(pseudo)} » (autre appareil, ou un ami avec le même pseudo ?) : seul le premier compte.`
+    : game.saved
     ? "✅ Résultat enregistré dans l'historique du groupe."
     : pseudo
       ? "⏳ Enregistrement du résultat…"
@@ -265,7 +269,7 @@ function renderWin() {
   box.innerHTML = `
     <h2>🥳 Bravo, le mot était « ${esc(vocab[day.secret])} » !</h2>
     <p>Trouvé en <strong>${game.guesses.length}</strong> essai${game.guesses.length > 1 ? "s" : ""}
-      ${game.end ? `et ${fmtDuration(Math.round((game.end - game.start) / 1000))}` : ""}.</p>
+      ${game.end && game.start ? `et ${fmtDuration(Math.round((game.end - game.start) / 1000))}` : ""}.</p>
     <p>${saveInfo}</p>
     <p><button type="button" id="share-btn">Partager mon score</button></p>
     <details><summary>Les 100 mots les plus proches</summary><ol class="closest">${closest}</ol></details>`;
@@ -304,6 +308,7 @@ function submitGuess(raw) {
   if (game.guesses.some((g) => g.i === i)) {
     showMessage(`« ${vocab[i]} » a déjà été proposé.`);
   } else {
+    if (!game.guesses.length) game.start = Date.now(); // le chrono démarre au premier mot
     game.guesses.push({ i });
     state.fresh = i;
     // L'encadré « Tu es à N mots » couvre déjà le meilleur mot : on ne détaille que les autres
@@ -346,12 +351,12 @@ $("pseudo-form").addEventListener("submit", () => {
 
 // ---------- Classement & historique ----------
 
-let history = null;
+let historyRows = null;
 
 async function loadHistory(force) {
-  if (history && !force) return history;
-  history = await fetchHistory();
-  return history;
+  if (historyRows && !force) return historyRows;
+  historyRows = await fetchHistory();
+  return historyRows;
 }
 
 async function renderToday() {
@@ -484,7 +489,9 @@ async function init() {
     console.error(e);
   }
   if (!state.day) {
-    $("status").textContent = state.puzzle < 1
+    $("status").textContent = typeof DecompressionStream === "undefined"
+      ? "Ton navigateur est trop ancien pour ce jeu : mets-le à jour (ou essaie Chrome / Firefox / Safari récent)."
+      : state.puzzle < 1
       ? "Le jeu n'a pas encore commencé, reviens bientôt !"
       : "Impossible de charger le mot du jour (ou plus de mots disponibles).";
     return;
