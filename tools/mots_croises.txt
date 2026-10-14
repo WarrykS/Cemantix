@@ -1,0 +1,472 @@
+# Banque des mots croisés : « MOT;définition » (accents ignorés dans la grille, 3 à 9 lettres)
+# Animaux
+CHAT;Félin domestique
+CHIEN;Meilleur ami de l'homme
+LOUP;Il hurle à la lune
+OURS;Gros mammifère qui hiberne
+RENARD;Rusé de la fable
+LAPIN;Il a de grandes oreilles et aime les carottes
+CHEVAL;On le monte au haras
+VACHE;Elle donne du lait
+MOUTON;On le tond pour sa laine
+COCHON;Il se roule dans la boue
+POULE;Elle pond des œufs
+CANARD;Il fait coin-coin
+CYGNE;Grand oiseau blanc au long cou
+AIGLE;Rapace royal
+HIBOU;Oiseau de nuit à aigrettes
+CORBEAU;Oiseau noir de la fable
+ABEILLE;Elle fabrique le miel
+FOURMI;Travailleuse de la fable
+PAPILLON;Il sort de la chrysalide
+ESCARGOT;Il porte sa maison sur son dos
+SERPENT;Reptile sans pattes
+REQUIN;Grand prédateur des mers
+BALEINE;Plus grand mammifère marin
+DAUPHIN;Mammifère marin très joueur
+TORTUE;Animal lent à carapace
+GIRAFE;Animal au très long cou
+ZEBRE;Cheval rayé d'Afrique
+LION;Roi de la savane
+TIGRE;Grand félin rayé
+SINGE;Il grimpe aux arbres et aime les bananes
+ELEPHANT;Pachyderme à trompe
+SOURIS;Rongeur ou accessoire d'ordinateur
+RAT;Rongeur des égouts
+CRAPAUD;Batracien à pustules
+HERISSON;Petit animal couvert de piquants
+ECUREUIL;Il fait des réserves de noisettes
+CERF;Il porte des bois
+BICHE;Femelle du cerf
+CHAMEAU;Il a deux bosses
+MOUSTIQUE;Insecte qui pique la nuit
+ARAIGNEE;Elle tisse sa toile
+PIEUVRE;Elle a huit bras
+CRABE;Il marche de côté
+HUITRE;Coquillage qui peut cacher une perle
+SAUMON;Poisson qui remonte les rivières
+TRUITE;Poisson de rivière tacheté
+PINGOUIN;Oiseau marin noir et blanc
+PERROQUET;Oiseau qui répète ce qu'on dit
+COQ;Il chante au lever du jour
+OIE;Grand oiseau de basse-cour
+ANE;Il brait
+NID;Maison de l'oiseau
+# Nature
+ARBRE;Chêne ou sapin
+CHENE;Arbre aux glands
+SAPIN;Arbre de Noël
+FLEUR;Rose ou tulipe
+ROSE;Fleur à épines
+TULIPE;Fleur emblématique des Pays-Bas
+FORET;Grand ensemble d'arbres
+MONTAGNE;Le mont Blanc en est une
+VOLCAN;Il peut entrer en éruption
+RIVIERE;Cours d'eau qui se jette dans un fleuve
+FLEUVE;Cours d'eau qui se jette dans la mer
+OCEAN;Atlantique ou Pacifique
+PLAGE;On y bronze au bord de la mer
+SABLE;On en fait des châteaux à la plage
+DESERT;Le Sahara en est un
+ILE;Terre entourée d'eau
+LAC;Étendue d'eau douce entourée de terres
+NEIGE;Elle tombe en flocons
+PLUIE;Elle mouille
+ORAGE;Tonnerre et éclairs
+NUAGE;Il flotte dans le ciel
+SOLEIL;Étoile de notre système
+LUNE;Satellite de la Terre
+ETOILE;Elle brille la nuit
+CIEL;Il est bleu par beau temps
+VENT;Le mistral en est un
+HERBE;Elle pousse dans le pré
+FEUILLE;Elle tombe en automne
+RACINE;Partie souterraine de la plante
+GRAINE;Elle donne naissance à une plante
+ROCHER;Gros bloc de pierre
+GROTTE;Cavité naturelle dans la roche
+CASCADE;Chute d'eau
+VALLEE;Creux entre deux montagnes
+COLLINE;Petite montagne arrondie
+MARAIS;Terrain gorgé d'eau
+PRINTEMPS;Saison des bourgeons
+ETE;Saison chaude
+AUTOMNE;Saison des feuilles mortes
+HIVER;Saison froide
+# Maison et objets
+MAISON;On y habite
+PORTE;On la ferme à clé
+FENETRE;Elle donne sur l'extérieur
+TOIT;Il couvre la maison
+MUR;On y accroche des tableaux
+CUISINE;Pièce où l'on prépare les repas
+SALON;Pièce où l'on reçoit
+CHAMBRE;Pièce où l'on dort
+GRENIER;Pièce sous les combles
+CAVE;On y range le vin
+JARDIN;On y plante des légumes
+ESCALIER;Il relie les étages
+TABLE;On y mange
+CHAISE;Siège à dossier
+FAUTEUIL;Siège confortable à accoudoirs
+LIT;Meuble pour dormir
+ARMOIRE;Meuble où l'on range les vêtements
+LAMPE;Elle éclaire
+MIROIR;Il reflète l'image
+TAPIS;Il couvre le sol
+RIDEAU;On le tire devant la fenêtre
+OREILLER;On y pose la tête pour dormir
+DRAP;Linge de lit
+CLE;Elle ouvre la serrure
+VERRE;On y boit
+ASSIETTE;On y sert le repas
+COUTEAU;Il coupe
+CUILLERE;Pour manger la soupe
+BOL;Récipient du petit-déjeuner
+TASSE;On y boit le café
+CASSEROLE;Ustensile pour faire bouillir
+FOUR;On y cuit le gâteau
+FRIGO;Il garde les aliments au frais
+HORLOGE;Elle donne l'heure
+BOUGIE;Elle éclaire à la flamme
+VALISE;Bagage de voyage
+PARAPLUIE;Il protège de la pluie
+CHAPEAU;Couvre-chef
+ECHARPE;Elle protège le cou du froid
+MANTEAU;Vêtement chaud d'hiver
+CHAUSSURE;Elle se porte au pied
+BOTTE;Chaussure montante
+GANT;Il habille la main
+ROBE;Vêtement féminin d'une seule pièce
+JUPE;Elle couvre le bas du corps
+PULL;Tricot à manches
+CHEMISE;Vêtement à col et à boutons
+CRAVATE;Elle se noue au col
+LUNETTES;Elles corrigent la vue
+MONTRE;Elle se porte au poignet
+SAC;On le porte à l'épaule
+LIVRE;On le lit
+CAHIER;On y écrit à l'école
+STYLO;Il écrit à l'encre
+CRAYON;Il se taille
+GOMME;Elle efface
+CISEAUX;Ils coupent le papier
+ENVELOPPE;On y glisse la lettre
+TIMBRE;On le colle sur l'enveloppe
+TELEPHONE;On s'en sert pour appeler
+ECRAN;Celui de la télé ou de l'ordinateur
+CLAVIER;On tape dessus
+RADIO;Elle diffuse musique et informations
+PHOTO;Image prise avec un appareil
+MARTEAU;Il enfonce les clous
+CLOU;On le plante avec un marteau
+VIS;Elle se serre avec un tournevis
+ECHELLE;Elle permet de monter
+SEAU;Récipient à anse
+BALAI;Il sert à balayer
+EPONGE;Elle absorbe l'eau
+# Cuisine
+PAIN;On l'achète à la boulangerie
+BAGUETTE;Pain long et fin
+CROISSANT;Viennoiserie du petit-déjeuner
+BEURRE;On le tartine
+FROMAGE;Le camembert en est un
+LAIT;Boisson blanche de la vache
+OEUF;La poule le pond
+SUCRE;Il adoucit le café
+SEL;Il assaisonne
+POIVRE;Épice noire
+MIEL;Produit par les abeilles
+CONFITURE;Fruits cuits avec du sucre
+CHOCOLAT;Fait à partir de cacao
+GATEAU;Dessert d'anniversaire
+TARTE;Dessert à pâte et à fruits
+CREPE;Spécialité bretonne
+SOUPE;Plat chaud servi en hiver
+SALADE;Feuilles assaisonnées de vinaigrette
+TOMATE;Fruit rouge de la ratatouille
+CAROTTE;Légume orange
+POMME;Fruit de Newton
+POIRE;Fruit en forme de goutte
+BANANE;Fruit jaune et courbé
+ORANGE;Agrume vitaminé
+CITRON;Agrume acide
+FRAISE;Fruit rouge du printemps
+CERISE;Petit fruit rouge à noyau
+RAISIN;Il pousse en grappes
+PECHE;Fruit à noyau à la peau duveteuse
+ABRICOT;Fruit orange à noyau
+ANANAS;Fruit tropical à couronne
+MELON;Fruit d'été à chair orange
+POTIRON;Courge d'automne
+OIGNON;Il fait pleurer
+AIL;Il éloigne les vampires
+RIZ;Céréale d'Asie
+PATES;Spaghettis ou tagliatelles
+POULET;Volaille rôtie du dimanche
+JAMBON;Charcuterie du sandwich
+STEAK;Tranche de bœuf grillée
+FRITES;Bâtonnets de pommes de terre frits
+PIZZA;Spécialité italienne
+CAFE;Boisson du matin
+THE;Infusion de feuilles
+VIN;Bordeaux ou bourgogne
+BIERE;Boisson au houblon
+EAU;Formule H2O
+JUS;Boisson de fruits pressés
+SIROP;Il se dilue dans l'eau
+GLACE;Dessert d'été ou eau gelée
+BONBON;Friandise sucrée
+BISCUIT;Petit gâteau sec
+NOIX;Fruit à coque
+OLIVE;Fruit de l'olivier
+MOUTARDE;Condiment de Dijon
+LEGUME;Carotte ou poireau
+# Corps
+TETE;Elle est au-dessus du cou
+MAIN;Elle a cinq doigts
+PIED;On marche dessus
+BRAS;Membre supérieur
+JAMBE;Membre inférieur
+GENOU;Articulation de la jambe
+COUDE;Articulation du bras
+EPAULE;On y porte le sac
+DOIGT;Il y en a dix aux mains
+OEIL;Organe de la vue
+NEZ;Organe de l'odorat
+BOUCHE;Elle sert à parler et à manger
+OREILLE;Organe de l'ouïe
+DENT;Elle se brosse
+LANGUE;Organe du goût
+COEUR;Il bat dans la poitrine
+CERVEAU;Siège de la pensée
+DOS;Partie arrière du corps
+VENTRE;Il gargouille quand on a faim
+CHEVEUX;Ils poussent sur la tête
+SOURCIL;Poils au-dessus de l'œil
+PEAU;Elle recouvre le corps
+SANG;Il coule dans les veines
+MUSCLE;Il se développe à la salle de sport
+# Ville et transports
+VILLE;Paris ou Lyon
+RUE;Voie bordée de maisons
+ROUTE;Voie de circulation
+PONT;Il enjambe la rivière
+GARE;On y prend le train
+TRAIN;Il roule sur des rails
+AVION;Il vole dans les airs
+BATEAU;Il navigue
+VOITURE;Elle roule sur quatre roues
+VELO;Deux roues à pédales
+MOTO;Deux roues à moteur
+BUS;Transport en commun
+METRO;Train souterrain
+TAXI;Voiture avec chauffeur, payante
+CAMION;Poids lourd
+FUSEE;Elle part dans l'espace
+PORT;Les bateaux y accostent
+AEROPORT;Les avions y atterrissent
+ECOLE;On y apprend à lire
+MAIRIE;Bâtiment du maire
+EGLISE;Lieu de culte à clocher
+MUSEE;Le Louvre en est un
+CINEMA;On y voit des films
+THEATRE;On y joue des pièces
+HOPITAL;On y soigne les malades
+PHARMACIE;On y achète des médicaments
+MARCHE;On y achète fruits et légumes en plein air
+BANQUE;On y dépose son argent
+PARC;Jardin public
+CHATEAU;Versailles en est un
+TOUR;Celle de Pise penche
+PHARE;Il guide les bateaux la nuit
+FEU;Il brûle dans la cheminée
+TROTTOIR;Bord de la rue réservé aux piétons
+# Métiers et personnages
+MEDECIN;Il soigne les patients
+DOCTEUR;Il fait des ordonnances
+AVOCAT;Il plaide au tribunal ou se mange en guacamole
+JUGE;Il rend le verdict
+POLICIER;Gardien de la paix
+POMPIER;Il éteint les incendies
+PILOTE;Il conduit l'avion
+FACTEUR;Il distribue le courrier
+BOULANGER;Il fait le pain
+BOUCHER;Il vend la viande
+CUISINIER;Il prépare les plats
+ELEVE;Il apprend à l'école
+MAITRE;Instituteur ou propriétaire du chien
+PEINTRE;Il manie le pinceau
+CHANTEUR;Il interprète des chansons
+ACTEUR;Il joue des rôles
+ECRIVAIN;Il écrit des livres
+FERMIER;Il travaille à la ferme
+COMPTABLE;Il tient les comptes
+ROI;Il porte la couronne
+REINE;Épouse du roi
+PRINCE;Fils du roi
+CLOWN;Il fait rire au cirque
+PIRATE;Bandit des mers
+SORCIERE;Elle vole sur un balai
+FEE;Elle a une baguette magique
+GEANT;Personnage immense des contes
+ROBOT;Machine automatique
+CHEVALIER;Il porte une armure
+DRAGON;Monstre qui crache du feu
+# Temps et fêtes
+NUIT;Le contraire du jour
+JOUR;Il succède à la nuit
+MATIN;Début de la journée
+SOIR;Fin de la journée
+SEMAINE;Sept jours
+MOIS;Janvier en est un
+ANNEE;Douze mois
+HEURE;Soixante minutes
+MINUTE;Soixante secondes
+LUNDI;Premier jour de la semaine
+DIMANCHE;Jour de repos
+NOEL;Fête du 25 décembre
+FETE;Célébration
+CADEAU;On le déballe à Noël
+VACANCES;Période sans école
+VOYAGE;Déplacement lointain
+# Loisirs
+JEU;Activité pour s'amuser
+BALLON;On joue au foot avec
+MUSIQUE;Art des sons
+CHANSON;Paroles et mélodie
+GUITARE;Instrument à six cordes
+PIANO;Instrument à touches noires et blanches
+VIOLON;Instrument à archet
+TAMBOUR;Instrument à percussion
+DANSE;On la pratique sur la piste
+FILM;On le regarde au cinéma
+HISTOIRE;Il était une fois…
+CONTE;Récit merveilleux pour enfants
+SPORT;Football ou tennis
+TENNIS;Sport de raquette
+SKI;Sport de glisse sur la neige
+NAGE;Crawl ou brasse
+COURSE;Épreuve de vitesse
+VICTOIRE;Le contraire de la défaite
+EQUIPE;Groupe de joueurs
+MATCH;Rencontre sportive
+BUT;Le footballeur le marque
+CARTE;À jouer ou routière
+ECHECS;Jeu du roi et de la reine
+TENTE;Abri de camping
+PASSEPORT;Document pour voyager à l'étranger
+# Monde
+PLANETE;Mars ou Vénus
+TERRE;Notre planète
+MONDE;La planète et ses habitants
+PAYS;La France en est un
+FRANCE;Pays de l'Hexagone
+PARIS;Capitale de la France
+EUROPE;Continent de la France
+AFRIQUE;Continent du Sahara
+# Travail et argent
+EURO;Monnaie européenne
+PRIX;Ce que coûte une chose
+FACTURE;Document à régler
+IMPOT;Somme due à l'État
+SALAIRE;Rémunération du travail
+BUREAU;Meuble ou lieu de travail
+TRAVAIL;Activité professionnelle
+CLIENT;Il achète
+SOCIETE;Entreprise
+CONTRAT;Accord signé
+CHEQUE;Moyen de paiement à signer
+BILAN;Document comptable de fin d'année
+CAISSE;On y paie au supermarché
+BOUTIQUE;Petit magasin
+MAGASIN;On y fait ses achats
+# Divers
+AMOUR;Sentiment tendre
+AMI;Copain
+JOIE;Grand bonheur
+PEUR;On la ressent devant un danger
+REVE;On le fait en dormant
+LETTRE;A, B ou C… ou courrier
+MOT;Assemblage de lettres
+PAGE;Feuille d'un livre
+NOMBRE;Un, deux, trois…
+ZERO;Rien du tout, en chiffre
+CERCLE;Figure ronde
+CARRE;Figure à quatre côtés égaux
+COULEUR;Rouge ou bleu
+ROUGE;Couleur du sang
+BLEU;Couleur du ciel
+VERT;Couleur de l'herbe
+JAUNE;Couleur du citron
+NOIR;Couleur de la nuit
+BLANC;Couleur de la neige
+ARGENT;Métal précieux ou monnaie
+FER;Métal de la tour Eiffel
+BOIS;Matériau tiré des arbres
+PIERRE;Caillou
+PAPIER;On écrit dessus
+QUESTION;On y répond
+REPONSE;Ce qu'on donne à une question
+SECRET;Ce qu'on ne doit pas répéter
+MYSTERE;Énigme
+INDICE;Il aide à trouver
+TRESOR;Le pirate l'enterre
+EPEE;Arme du chevalier
+MAGIE;Art du sorcier
+OMBRE;Elle nous suit au soleil
+LUMIERE;Le contraire de l'obscurité
+BRUIT;Son désagréable
+SILENCE;Absence de bruit
+# Adjectifs
+CHAUD;Le contraire de froid
+FROID;Le contraire de chaud
+GRAND;Le contraire de petit
+PETIT;Le contraire de grand
+LENT;Le contraire de rapide
+NOUVEAU;Le contraire d'ancien
+VIEUX;Le contraire de jeune
+JEUNE;Le contraire de vieux
+BEAU;Joli
+FORT;Musclé
+DOUX;Agréable au toucher
+SAGE;Tranquille et obéissant
+DROLE;Qui fait rire
+TRISTE;Le contraire de gai
+CALME;Tranquille
+FACILE;Le contraire de difficile
+RAPIDE;Qui va vite
+PLEIN;Le contraire de vide
+VIDE;Le contraire de plein
+HAUT;Le contraire de bas
+BAS;Le contraire de haut
+OUVERT;Le contraire de fermé
+# Verbes
+MANGER;Prendre son repas
+BOIRE;Avaler un liquide
+DORMIR;Se reposer la nuit
+COURIR;Aller très vite à pied
+MARCHER;Aller à pied
+NAGER;Se déplacer dans l'eau
+CHANTER;Faire entendre sa voix en musique
+DANSER;Bouger en rythme
+LIRE;Parcourir un livre
+ECRIRE;Tracer des lettres
+JOUER;S'amuser
+PARLER;S'exprimer avec des mots
+RIRE;Exprimer sa joie bruyamment
+PLEURER;Verser des larmes
+AIMER;Éprouver de l'amour
+CHERCHER;Essayer de trouver
+TROUVER;Découvrir ce qu'on cherchait
+OUBLIER;Ne plus se souvenir
+PENSER;Réfléchir
+VOLER;Se déplacer dans les airs ou dérober
+CUIRE;Préparer au feu
+OUVRIR;Le contraire de fermer
+FERMER;Le contraire d'ouvrir
+GAGNER;Remporter la victoire
+PERDRE;Le contraire de gagner
+PAYER;Régler la facture
+COMPTER;Un, deux, trois…
+SAUTER;S'élever du sol d'un bond

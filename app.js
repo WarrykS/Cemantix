@@ -159,16 +159,50 @@ function handleAuthError(e) {
   return false;
 }
 
+// ---------- Parties et résultats (communs aux trois jeux) ----------
+
+// p_game n'est envoyé que pour Sutom et les mots croisés : Cémantix reste compatible avec l'ancienne base.
+const gameArg = (game) => (game === "cemantix" ? {} : { p_game: game });
+const stateKey = (game, pseudo, puzzle) =>
+  game === "cemantix" ? `cx_v3_game_${pseudo.toLowerCase()}_${puzzle}` : `cx_${game}_${pseudo.toLowerCase()}_${puzzle}`;
+const durationOf = (g) => (g.start && g.end ? Math.max(0, Math.round((g.end - g.start) / 1000)) : null);
+
+// Sauvegarde la partie dans le navigateur et sur le serveur (pour la reprendre sur un autre appareil)
+function saveState(game, puzzle, data) {
+  const sess = session();
+  if (!sess) return;
+  store.set(stateKey(game, sess.pseudo, puzzle), data);
+  rpc("cemantix_save_game", { p_token: sess.token, p_puzzle: puzzle, p_state: data, ...gameArg(game) }).catch(handleAuthError);
+}
+
+// Renvoie { local, remote } (données brutes), ou null si la session a expiré
+async function loadState(game, puzzle) {
+  const sess = session();
+  const local = store.get(stateKey(game, sess.pseudo, puzzle), null);
+  let remote = null;
+  try {
+    remote = await rpc("cemantix_load_game", { p_token: sess.token, p_puzzle: puzzle, ...gameArg(game) });
+  } catch (e) {
+    if (handleAuthError(e)) return null;
+  }
+  return { local, remote };
+}
+
+// Enregistre le résultat du jour : "ok", "duplicate" (déjà enregistré ailleurs) ; lève une erreur sinon
+function submitResult(game, puzzle, { tries, word = null, duration_s = null, won = true }) {
+  const sess = session();
+  return rpc("cemantix_submit", {
+    p_token: sess.token, p_puzzle: puzzle, p_tries: tries, p_word: word, p_duration_s: duration_s,
+    ...gameArg(game), ...(game === "cemantix" ? {} : { p_won: won }),
+  });
+}
+
 async function saveResult(game) {
   const sess = session();
   if (!sess || game.saved) return;
   try {
-    const res = await rpc("cemantix_submit", {
-      p_token: sess.token,
-      p_puzzle: game.puzzle,
-      p_tries: game.guesses.length,
-      p_word: vocab[state.day.secret],
-      p_duration_s: game.start ? Math.max(0, Math.round((game.end - game.start) / 1000)) : null,
+    const res = await submitResult("cemantix", game.puzzle, {
+      tries: game.guesses.length, word: vocab[state.day.secret], duration_s: durationOf(game),
     });
     game.saved = true;
     game.conflict = res === "duplicate"; // déjà enregistré depuis un autre appareil
@@ -192,8 +226,6 @@ function newGame(puzzle) {
 // Les propositions sont sauvegardées sous forme de mots (et non de positions dans le
 // vocabulaire) pour survivre à une régénération des données. Chaque joueur a sa partie,
 // gardée dans le navigateur et sur le serveur (pour la reprendre sur un autre appareil).
-const gameKey = (pseudo, puzzle) => `cx_v3_game_${pseudo.toLowerCase()}_${puzzle}`;
-
 function serializeGame(game) {
   return { ...game, guesses: game.guesses.map((g) => vocab[g.i]) };
 }
@@ -205,16 +237,13 @@ function deserializeGame(saved, puzzle) {
 }
 
 function saveGame(game) {
-  const sess = session();
-  if (!sess) return;
-  const data = serializeGame(game);
-  store.set(gameKey(sess.pseudo, game.puzzle), data);
-  rpc("cemantix_save_game", { p_token: sess.token, p_puzzle: game.puzzle, p_state: data }).catch(handleAuthError);
+  saveState("cemantix", game.puzzle, serializeGame(game));
 }
 
 async function loadGame(puzzle) {
-  const sess = session();
-  let local = deserializeGame(store.get(gameKey(sess.pseudo, puzzle), null), puzzle);
+  const saved = await loadState("cemantix", puzzle);
+  if (!saved) return null;
+  let local = deserializeGame(saved.local, puzzle);
   // Partie commencée avant la création des comptes : on la rattache au premier joueur connecté
   const legacy = deserializeGame(store.get(`cx_v2_game_${puzzle}`, null), puzzle);
   if (legacy && !local) {
@@ -225,12 +254,7 @@ async function loadGame(puzzle) {
       /* rien */
     }
   }
-  let remote = null;
-  try {
-    remote = deserializeGame(await rpc("cemantix_load_game", { p_token: sess.token, p_puzzle: puzzle }), puzzle);
-  } catch (e) {
-    if (handleAuthError(e)) return null;
-  }
+  const remote = deserializeGame(saved.remote, puzzle);
   // On garde la version la plus avancée (la partie trouvée, sinon celle avec le plus de mots)
   const score = (g) => (g ? (g.found ? 1e6 : 0) + g.guesses.length : -1);
   const game = score(remote) >= score(local) ? remote : local;
@@ -405,8 +429,8 @@ $("pseudo-form").addEventListener("submit", async (e) => {
     store.set("cx_session", { pseudo: res.pseudo, token: res.token });
     $("pseudo-dialog").close();
     renderPseudo();
-    if (res.created) showMessage(`Compte « ${res.pseudo} » créé. Retiens bien ton mot de passe !`);
-    await startGame();
+    await restartGames();
+    if (res.created) flash(`Compte « ${res.pseudo} » créé. Retiens bien ton mot de passe !`);
   } catch (err) {
     $("login-error").textContent = err.message || "Connexion impossible, vérifie ta connexion internet.";
   } finally {
@@ -420,9 +444,8 @@ $("pseudo-btn").addEventListener("click", () => {
   if (sess) {
     rpc("cemantix_logout", { p_token: sess.token }).catch(() => {});
     store.set("cx_session", null);
-    state.game = null;
     renderPseudo();
-    renderGame();
+    restartGames();
   }
   askPseudo();
 });
@@ -438,19 +461,63 @@ async function loadHistory(force) {
   return historyRows;
 }
 
+// Présentation des résultats propre à chaque jeu
+const RESULT = {
+  cemantix: {
+    todayTitle: "Ils ont trouvé aujourd'hui",
+    historyTitle: "Historique des trouvailles",
+    empty: "Personne n'a encore trouvé le mot d'aujourd'hui. À toi de jouer !",
+    sort: (a, b) => a.tries - b.tries || (a.duration_s ?? 1e9) - (b.duration_s ?? 1e9),
+    score: (r) => `${r.tries} essai${r.tries > 1 ? "s" : ""}`,
+    statHead: ["Mots trouvés", "Moyenne", "Record"],
+    stats: (rs) => [rs.length, avg(rs.map((r) => r.tries)), Math.min(...rs.map((r) => r.tries))],
+  },
+  sutom: {
+    todayTitle: "Résultats du jour",
+    historyTitle: "Historique Sutom",
+    empty: "Personne n'a encore joué le Sutom d'aujourd'hui. À toi de jouer !",
+    sort: (a, b) => (b.won - a.won) || a.tries - b.tries || (a.duration_s ?? 1e9) - (b.duration_s ?? 1e9),
+    score: (r) => (r.won ? `${r.tries}/6` : "✗ perdu"),
+    statHead: ["Gagnés", "Moyenne", "Record"],
+    stats: (rs) => {
+      const won = rs.filter((r) => r.won);
+      return [`${won.length}/${rs.length}`, won.length ? avg(won.map((r) => r.tries)) : "–",
+        won.length ? `${Math.min(...won.map((r) => r.tries))}/6` : "–"];
+    },
+  },
+  mots: {
+    todayTitle: "Grille du jour : les plus rapides",
+    historyTitle: "Historique des grilles",
+    empty: "Personne n'a encore fini la grille d'aujourd'hui. À toi de jouer !",
+    sort: (a, b) => (a.duration_s ?? 1e9) - (b.duration_s ?? 1e9) || a.tries - b.tries,
+    score: (r) => `${fmtDuration(r.duration_s) || "?"}${r.tries > 1 ? ` · ${r.tries - 1} vérif.` : ""}`,
+    statHead: ["Grilles", "Temps moyen", "Record"],
+    stats: (rs) => {
+      const t = rs.map((r) => r.duration_s).filter((x) => x != null);
+      return [rs.length, t.length ? fmtDuration(Math.round(t.reduce((x, y) => x + y, 0) / t.length)) : "–",
+        t.length ? fmtDuration(Math.min(...t)) : "–"];
+    },
+  },
+};
+const avg = (xs) => (xs.reduce((x, y) => x + y, 0) / xs.length).toFixed(1).replace(".", ",");
+
 async function renderToday() {
+  const R = RESULT[activeGame];
+  $("today-title").textContent = R.todayTitle;
   const box = $("today-board");
   box.innerHTML = "<p>Chargement…</p>";
   try {
-    const rows = (await loadHistory(true)).filter((r) => r.puzzle === state.puzzle);
+    const rows = (await loadHistory(true))
+      .filter((r) => (r.game || "cemantix") === activeGame && r.puzzle === state.puzzle)
+      .sort(R.sort);
     if (!rows.length) {
-      box.innerHTML = "<p>Personne n'a encore trouvé le mot d'aujourd'hui. À toi de jouer !</p>";
+      box.innerHTML = `<p>${R.empty}</p>`;
       return;
     }
     const me = (session()?.pseudo || "").toLowerCase();
-    box.innerHTML = `<table class="board"><thead><tr><th></th><th>Joueur</th><th>Essais</th><th>Temps</th><th>Heure</th></tr></thead><tbody>
+    box.innerHTML = `<table class="board"><thead><tr><th></th><th>Joueur</th><th>Résultat</th><th>Temps</th><th>Heure</th></tr></thead><tbody>
       ${rows.map((r, k) => `<tr class="${r.pseudo.toLowerCase() === me ? "me" : ""}">
-        <td>${["🥇", "🥈", "🥉"][k] || k + 1}</td><td>${esc(r.pseudo)}</td><td>${r.tries}</td>
+        <td>${r.won === false ? "" : ["🥇", "🥈", "🥉"][k] || k + 1}</td><td>${esc(r.pseudo)}</td><td>${esc(R.score(r))}</td>
         <td>${fmtDuration(r.duration_s)}</td>
         <td>${new Date(r.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</td></tr>`).join("")}
       </tbody></table>`;
@@ -460,11 +527,13 @@ async function renderToday() {
 }
 
 async function renderHistory() {
+  const R = RESULT[activeGame];
+  $("history-title").textContent = R.historyTitle;
   const list = $("history-list");
   list.innerHTML = "<p>Chargement…</p>";
   let rows;
   try {
-    rows = await loadHistory(true);
+    rows = (await loadHistory(true)).filter((r) => (r.game || "cemantix") === activeGame);
   } catch {
     list.innerHTML = "<p>Impossible de charger l'historique. Vérifie ta connexion.</p>";
     return;
@@ -482,25 +551,22 @@ async function renderHistory() {
   const shown = filter ? rows.filter((r) => r.pseudo.toLowerCase() === filter) : rows;
 
   // Statistiques par joueur
-  const stats = new Map();
-  for (const r of rows) {
+  const byPlayer = new Map();
+  for (const r of shown) {
     const k = r.pseudo.toLowerCase();
-    if (filter && k !== filter) continue;
-    const s = stats.get(k) || { pseudo: r.pseudo, n: 0, total: 0, best: Infinity };
-    s.n++;
-    s.total += r.tries;
-    s.best = Math.min(s.best, r.tries);
-    stats.set(k, s);
+    if (!byPlayer.has(k)) byPlayer.set(k, []);
+    byPlayer.get(k).push(r);
   }
-  const statRows = [...stats.values()].sort((a, b) => b.n - a.n || a.total / a.n - b.total / b.n);
+  const statRows = [...byPlayer.values()].map((rs) => ({ pseudo: rs[0].pseudo, cols: R.stats(rs), n: rs.length }))
+    .sort((a, b) => b.n - a.n);
   $("stats").innerHTML = statRows.length
-    ? `<table class="board"><thead><tr><th>Joueur</th><th>Mots trouvés</th><th>Moyenne</th><th>Record</th></tr></thead><tbody>
-      ${statRows.map((s) => `<tr><td>${esc(s.pseudo)}</td><td>${s.n}</td><td>${(s.total / s.n).toFixed(1).replace(".", ",")}</td><td>${s.best}</td></tr>`).join("")}
+    ? `<table class="board"><thead><tr><th>Joueur</th>${R.statHead.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>
+      ${statRows.map((s) => `<tr><td>${esc(s.pseudo)}</td>${s.cols.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}
       </tbody></table>`
     : "";
 
   if (!shown.length) {
-    list.innerHTML = "<p>Aucune trouvaille enregistrée pour l'instant.</p>";
+    list.innerHTML = "<p>Aucun résultat enregistré pour l'instant.</p>";
     return;
   }
   const byPuzzle = new Map();
@@ -510,11 +576,11 @@ async function renderHistory() {
   }
   list.innerHTML = [...byPuzzle.entries()].sort((a, b) => b[0] - a[0]).map(([n, rs]) => {
     const word = rs.find((r) => r.word)?.word;
+    const label = activeGame === "mots" ? "" : word ? `« ${esc(word)} »` : "mot du jour 🤫";
     return `<article class="day">
-      <header><strong>N°${n}</strong> · ${puzzleDate(n)}
-        <span class="word">${word ? `« ${esc(word)} »` : "mot du jour 🤫"}</span></header>
-      <ul>${rs.sort((a, b) => a.tries - b.tries).map((r) =>
-        `<li><span>${esc(r.pseudo)}</span><span>${r.tries} essai${r.tries > 1 ? "s" : ""}${r.duration_s != null ? ` · ${fmtDuration(r.duration_s)}` : ""}</span></li>`).join("")}</ul>
+      <header><strong>N°${n}</strong> · ${puzzleDate(n)}<span class="word">${label}</span></header>
+      <ul>${rs.sort(R.sort).map((r) => `<li><span>${esc(r.pseudo)}</span><span>${esc(R.score(r))}${
+        activeGame !== "mots" && r.duration_s != null ? ` · ${fmtDuration(r.duration_s)}` : ""}</span></li>`).join("")}</ul>
     </article>`;
   }).join("");
 }
@@ -559,7 +625,6 @@ $("guess-form").addEventListener("submit", (e) => {
 // Affiche la partie du joueur connecté (ou l'invitation à se connecter)
 function renderGame() {
   const game = state.game;
-  $("login-needed").hidden = !!game;
   $("guess-form").hidden = !game || game.found;
   if (!game) {
     $("guesses").hidden = true;
@@ -572,28 +637,16 @@ function renderGame() {
   renderWin();
 }
 
-async function startGame() {
+async function startCemantix() {
   state.game = null;
   state.last = null;
-  if (session()) state.game = await loadGame(state.puzzle);
-  renderGame();
-  if (!state.game) {
-    if (!session()) askPseudo();
-    return;
-  }
-  if (state.game.found && !state.game.saved) saveResult(state.game);
-  else if (!state.game.found) $("guess-input").focus();
-}
-
-async function init() {
-  renderPseudo();
-  state.puzzle = dayNumber(parisDate());
-  $("puzzle-label").textContent = `Jour n°${state.puzzle}`;
-  try {
-    await loadVocab();
-    state.day = await loadDay(state.puzzle);
-  } catch (e) {
-    console.error(e);
+  if (!state.day) {
+    try {
+      if (!vocab.length) await loadVocab();
+      state.day = await loadDay(state.puzzle);
+    } catch (e) {
+      console.error(e);
+    }
   }
   if (!state.day) {
     $("status").textContent = typeof DecompressionStream === "undefined"
@@ -604,7 +657,65 @@ async function init() {
     return;
   }
   $("status").textContent = `Mot secret n°${state.puzzle} — ${puzzleDate(state.puzzle)}`;
-  await startGame();
+  if (session()) state.game = await loadGame(state.puzzle);
+  renderGame();
+  if (!state.game) return;
+  if (state.game.found && !state.game.saved) saveResult(state.game);
+  else if (!state.game.found && activeGame === "cemantix") $("guess-input").focus();
 }
 
-init();
+// ---------- Jeux ----------
+
+// Chaque jeu s'enregistre ici : { title, start() } ; start() (re)charge la partie du joueur connecté
+const GAMES = { cemantix: { title: "Cémantix", start: startCemantix } };
+window.GAMES = GAMES;
+let activeGame = "cemantix";
+const started = new Set();
+
+// Message bref dans la zone du jeu affiché
+function flash(text) {
+  const el = $(activeGame === "cemantix" ? "message" : `${activeGame}-message`);
+  if (el) el.textContent = text;
+}
+
+async function activateGame(id) {
+  if (!GAMES[id]) id = "cemantix";
+  activeGame = id;
+  store.set("cx_active_game", id);
+  history.replaceState(null, "", id === "cemantix" ? location.pathname : `#${id}`);
+  $("game-title").textContent = GAMES[id].title;
+  document.querySelectorAll(".game-btn").forEach((b) => b.classList.toggle("active", b.dataset.game === id));
+  document.querySelectorAll(".game").forEach((g) => { g.hidden = g.id !== `game-${id}`; });
+  const tab = document.querySelector(".tab.active")?.dataset.tab;
+  if (tab === "today") renderToday();
+  if (tab === "history") renderHistory();
+  $("login-needed").hidden = !!session();
+  if (!started.has(id)) {
+    started.add(id);
+    await GAMES[id].start();
+  }
+}
+
+// Après une connexion ou une déconnexion : chaque jeu recharge la partie du nouveau joueur
+async function restartGames() {
+  started.clear();
+  for (const id of Object.keys(GAMES)) if (GAMES[id].reset) GAMES[id].reset();
+  $("login-needed").hidden = !!session();
+  started.add(activeGame);
+  await GAMES[activeGame].start();
+  if (!session()) askPseudo();
+}
+
+document.querySelectorAll(".game-btn").forEach((b) => b.addEventListener("click", () => activateGame(b.dataset.game)));
+
+async function init() {
+  renderPseudo();
+  state.puzzle = dayNumber(parisDate());
+  $("puzzle-label").textContent = `Jour n°${state.puzzle}`;
+  const fromHash = location.hash.slice(1);
+  await activateGame(GAMES[fromHash] ? fromHash : store.get("cx_active_game", "cemantix"));
+  if (!session()) askPseudo();
+}
+
+// Les autres jeux (sutom.js, mots.js) s'enregistrent avant ce signal
+document.addEventListener("DOMContentLoaded", init);

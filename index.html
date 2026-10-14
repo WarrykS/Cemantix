@@ -3,14 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cémantix entre amis</title>
-  <meta name="description" content="Trouvez le mot secret du jour grâce à la proximité sémantique, et comparez-vous à vos amis.">
+  <title>Jeux entre amis : Cémantix, Sutom, mots croisés</title>
+  <meta name="description" content="Cémantix, Sutom et mots croisés du jour, avec classement et historique entre amis.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <header class="top">
-    <h1>Cémantix <span>entre amis</span></h1>
+    <h1><span id="game-title">Cémantix</span> <span class="accent">entre amis</span></h1>
+    <nav class="games" aria-label="Choisir un jeu">
+      <button class="game-btn active" data-game="cemantix" type="button">🌡️ Cémantix</button>
+      <button class="game-btn" data-game="sutom" type="button">🟥 Sutom</button>
+      <button class="game-btn" data-game="mots" type="button">✏️ Mots croisés</button>
+    </nav>
     <div class="who">
       <span id="puzzle-label"></span>
       <button id="pseudo-btn" class="link" type="button"></button>
@@ -25,8 +30,10 @@
   <main>
     <!-- Jouer -->
     <section id="tab-play" class="panel active">
-      <p id="status" class="status">Chargement du mot du jour…</p>
       <p id="login-needed" hidden><button type="button" id="login-open">Se connecter pour jouer</button></p>
+
+      <div id="game-cemantix" class="game">
+      <p id="status" class="status">Chargement du mot du jour…</p>
 
       <form id="guess-form" autocomplete="off" hidden>
         <input id="guess-input" type="text" placeholder="Proposez un mot" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="40" aria-label="Votre proposition">
@@ -56,18 +63,57 @@
       </details>
 
       <p class="yesterday"><button id="yesterday-btn" class="link" type="button">Voir le mot d'hier</button> <span id="yesterday-word"></span></p>
+      </div>
+
+      <!-- Sutom -->
+      <div id="game-sutom" class="game" hidden>
+        <p id="sutom-status" class="status">Chargement du mot du jour…</p>
+        <div id="sutom-grid" class="sutom-grid" aria-live="polite"></div>
+        <p id="sutom-message" class="message" aria-live="polite"></p>
+        <div id="sutom-end" class="win" hidden></div>
+        <div id="sutom-keyboard" class="keyboard" hidden></div>
+        <details class="help">
+          <summary>Comment jouer ?</summary>
+          <p>Trouve le mot du jour en 6 essais. La première lettre est donnée et chaque proposition doit être un mot
+          du dictionnaire de la bonne longueur.</p>
+          <p><span class="tile-demo ok">A</span> lettre bien placée · <span class="tile-demo mis">A</span> lettre présente mais mal placée ·
+          <span class="tile-demo no">A</span> lettre absente.</p>
+          <p>Tape au clavier ou utilise le clavier à l'écran.</p>
+        </details>
+      </div>
+
+      <!-- Mots croisés -->
+      <div id="game-mots" class="game" hidden>
+        <p id="mots-status" class="status">Chargement de la grille du jour…</p>
+        <div id="mots-clue" class="current-clue" hidden></div>
+        <div class="mots-layout">
+          <div id="mots-grid" class="cw-grid"></div>
+          <div id="mots-clues" class="cw-clues"></div>
+        </div>
+        <p id="mots-message" class="message" aria-live="polite"></p>
+        <div id="mots-actions" class="cw-actions" hidden>
+          <button type="button" id="mots-check">Vérifier la grille</button>
+        </div>
+        <div id="mots-end" class="win" hidden></div>
+        <details class="help">
+          <summary>Comment jouer ?</summary>
+          <p>Remplis la grille à l'aide des définitions (sans accents). Touche une case pour la sélectionner, touche-la
+          à nouveau pour changer de sens. Le chrono démarre à la première lettre.</p>
+          <p>« Vérifier la grille » montre les lettres fausses, mais chaque vérification est comptée dans ton résultat.</p>
+        </details>
+      </div>
     </section>
 
     <!-- Classement du jour -->
     <section id="tab-today" class="panel">
-      <h2>Ils ont trouvé aujourd'hui</h2>
-      <p class="hint">Le mot n'est pas affiché ici, pas de spoiler 😉</p>
+      <h2 id="today-title">Ils ont trouvé aujourd'hui</h2>
+      <p class="hint">La réponse n'est pas affichée ici, pas de spoiler 😉</p>
       <div id="today-board"></div>
     </section>
 
     <!-- Historique -->
     <section id="tab-history" class="panel">
-      <h2>Historique des trouvailles</h2>
+      <h2 id="history-title">Historique des trouvailles</h2>
       <label class="filter">Joueur :
         <select id="player-filter"><option value="">Tout le monde</option></select>
       </label>
@@ -89,6 +135,8 @@
   </dialog>
 
   <script src="config.js?v=2"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
+  <script src="sutom.js?v=1"></script>
+  <script src="mots.js?v=1"></script>
 </body>
 </html>
