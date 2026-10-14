@@ -8,6 +8,14 @@
   --accent-soft: #fff1e6;
   --bar: #f08c00;
   --found: #e6f6ea;
+  --lost: #fdeceb;
+  --tile-ok: #e03131;
+  --tile-mis: #f2b705;
+  --tile-no: #2f6ec4;
+  --tile-text: #ffffff;
+  --block: #2b2d31;
+  --word: #fff1e6;
+  --wrong: #e03131;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +29,13 @@
     --accent-soft: #2b2018;
     --bar: #f59f00;
     --found: #183323;
+    --lost: #3a1d1b;
+    --tile-ok: #d9363e;
+    --tile-mis: #d9a400;
+    --tile-no: #2b5ea7;
+    --block: #000000;
+    --word: #2b2018;
+    --wrong: #ff6b6b;
   }
 }
 
@@ -44,7 +59,7 @@ body {
 .top { padding-top: 20px; }
 
 h1 { margin: 0; font-size: 1.8rem; }
-h1 span { color: var(--accent); font-weight: 600; }
+h1 .accent { color: var(--accent); font-weight: 600; }
 h2 { font-size: 1.2rem; margin: 0.5em 0; }
 
 .who {
@@ -255,4 +270,157 @@ dialog .actions { text-align: right; margin-top: 12px; }
   .closest { columns: 1; }
   th, td { padding: 6px 4px; }
   .guesses td:nth-child(5) { width: 28%; }
+}
+
+/* ---------- Sélecteur de jeu ---------- */
+.games { display: flex; gap: 6px; margin: 10px 0 4px; }
+.game-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 7px 4px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* ---------- Sutom ---------- */
+.sutom-grid { display: grid; gap: 6px; justify-content: center; margin: 8px 0; }
+.tile-row { display: grid; grid-template-columns: repeat(var(--len), minmax(0, 46px)); gap: 5px; }
+.tile {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font: 700 clamp(1rem, 5vw, 1.5rem) / 1 system-ui, sans-serif;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+.tile.typed { border-color: var(--muted); }
+.tile.hint { color: var(--muted); opacity: 0.55; }
+.tile.ok, .tile.mis, .tile.no { color: var(--tile-text); border-color: transparent; background: var(--tile-no); }
+.tile.ok { background: var(--tile-ok); }
+.tile.mis { position: relative; }
+.tile.mis::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: var(--tile-mis);
+  z-index: 0;
+}
+.tile.mis { isolation: isolate; }
+.tile.mis { color: #1f2328; }
+.tile.mis::before { z-index: -1; }
+.tile.flip { animation: flip 0.45s ease both; }
+.tile-row.shake { animation: shake 0.35s; }
+@keyframes flip {
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+@keyframes shake {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.tile-demo {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 4px;
+  color: var(--tile-text);
+  font-weight: 700;
+  background: var(--tile-no);
+}
+.tile-demo.ok { background: var(--tile-ok); }
+.tile-demo.mis { background: radial-gradient(circle, var(--tile-mis) 62%, var(--tile-no) 64%); color: #1f2328; }
+
+.keyboard { display: grid; gap: 6px; margin: 12px 0; user-select: none; }
+.kb-row { display: flex; gap: 4px; justify-content: center; }
+.key {
+  flex: 1 1 0;
+  max-width: 44px;
+  min-width: 0;
+  padding: 12px 0;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.key.wide { flex: 1.8 1 0; max-width: 84px; font-size: 0.8rem; }
+.key.ok { background: var(--tile-ok); color: var(--tile-text); border-color: transparent; }
+.key.mis { background: var(--tile-mis); color: #1f2328; border-color: transparent; }
+.key.no { background: var(--tile-no); color: var(--tile-text); opacity: 0.55; border-color: transparent; }
+.win.lost { background: var(--lost); }
+
+/* ---------- Mots croisés ---------- */
+.current-clue {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.len { color: var(--muted); font-size: 0.85em; }
+.mots-layout { display: grid; gap: 16px; }
+@media (min-width: 700px) { .mots-layout { grid-template-columns: auto 1fr; align-items: start; } }
+.cw-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 40px));
+  gap: 2px;
+  justify-content: center;
+}
+.cw-cell {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  display: block;
+}
+.cw-cell.block { background: transparent; border-color: transparent; cursor: default; }
+.cw-cell.word { background: var(--word); }
+.cw-cell.cur { outline: 2px solid var(--accent); outline-offset: -1px; z-index: 1; }
+.cw-cell.done { background: var(--found); }
+.cw-cell .num { position: absolute; top: 1px; left: 3px; font-size: 0.6rem; color: var(--muted); pointer-events: none; }
+.cw-cell input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font: 700 clamp(0.95rem, 4.5vw, 1.25rem) / 1 system-ui, sans-serif;
+  text-transform: uppercase;
+  padding: 6px 0 0;
+  caret-color: transparent;
+  cursor: pointer;
+  color: var(--text);
+}
+.cw-cell input:focus { outline: none; }
+.cw-cell.wrong input { color: var(--wrong); text-decoration: line-through; }
+.cw-clues { display: grid; gap: 12px; font-size: 0.95rem; }
+@media (min-width: 480px) and (max-width: 699px) { .cw-clues { grid-template-columns: 1fr 1fr; } }
+.cw-clues h3 { margin: 0 0 4px; font-size: 1rem; }
+.cw-clues ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.cw-clues li { padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+.cw-clues li.active { background: var(--accent-soft); }
+.cw-clues li.filled { color: var(--muted); }
+.cw-actions { margin: 8px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tile.flip, .tile-row.shake { animation: none !important; }
 }
