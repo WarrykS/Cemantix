@@ -36,7 +36,7 @@ ses appareils et personne ne peut jouer ni enregistrer un résultat à sa place.
 
 Dépôt → **Settings** → **Pages** → *Build and deployment* : Source = **Deploy from a branch**,
 branche `main`, dossier `/ (root)` → **Save**. Le site sera disponible quelques minutes plus tard sur
-`https://warryks.github.io/cemantix/`.
+`https://warryks.github.io/Cemantix/`.
 
 ## Générer plus de jours
 
