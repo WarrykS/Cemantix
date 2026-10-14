@@ -127,37 +127,53 @@ async function sb(path, options = {}) {
     },
   });
   if (!res.ok) {
-    const err = new Error(`Supabase ${res.status}`);
+    let body = {};
+    try {
+      body = await res.json();
+    } catch {
+      /* corps vide */
+    }
+    const err = new Error(body.message || `Erreur serveur (${res.status})`);
     err.status = res.status;
+    err.code = body.code;
     throw err;
   }
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
 
-const fetchHistory = () => sb("rpc/cemantix_history", { method: "POST", body: "{}" });
+const rpc = (name, args = {}) => sb(`rpc/${name}`, { method: "POST", body: JSON.stringify(args) });
+const fetchHistory = () => rpc("cemantix_history");
+
+// Session : { pseudo, token } (le mot de passe n'est jamais conservé dans le navigateur)
+const session = () => store.get("cx_session", null);
+
+function handleAuthError(e) {
+  if (e.code === "28000") {
+    // session expirée ou supprimée : on redemande le mot de passe
+    store.set("cx_session", null);
+    renderPseudo();
+    askPseudo();
+    return true;
+  }
+  return false;
+}
 
 async function saveResult(game) {
-  const pseudo = store.get("cx_pseudo", "");
-  if (!pseudo || game.saved) return;
+  const sess = session();
+  if (!sess || game.saved) return;
   try {
-    await sb("results", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
-        puzzle: game.puzzle,
-        pseudo,
-        tries: game.guesses.length,
-        word: vocab[state.day.secret],
-        duration_s: game.start ? Math.max(0, Math.round((game.end - game.start) / 1000)) : null,
-      }),
+    const res = await rpc("cemantix_submit", {
+      p_token: sess.token,
+      p_puzzle: game.puzzle,
+      p_tries: game.guesses.length,
+      p_word: vocab[state.day.secret],
+      p_duration_s: game.start ? Math.max(0, Math.round((game.end - game.start) / 1000)) : null,
     });
     game.saved = true;
+    game.conflict = res === "duplicate"; // déjà enregistré depuis un autre appareil
   } catch (e) {
-    if (e.status === 409) {
-      game.saved = true;
-      game.conflict = true; // un résultat existe déjà pour ce pseudo aujourd'hui
-    } else {
+    if (!handleAuthError(e)) {
       showMessage("Impossible d'enregistrer ton résultat pour l'instant, nouvel essai au prochain chargement.");
     }
   }
@@ -174,16 +190,51 @@ function newGame(puzzle) {
 }
 
 // Les propositions sont sauvegardées sous forme de mots (et non de positions dans le
-// vocabulaire) pour survivre à une régénération des données.
-function saveGame(game) {
-  store.set(`cx_v2_game_${game.puzzle}`, { ...game, guesses: game.guesses.map((g) => vocab[g.i]) });
+// vocabulaire) pour survivre à une régénération des données. Chaque joueur a sa partie,
+// gardée dans le navigateur et sur le serveur (pour la reprendre sur un autre appareil).
+const gameKey = (pseudo, puzzle) => `cx_v3_game_${pseudo.toLowerCase()}_${puzzle}`;
+
+function serializeGame(game) {
+  return { ...game, guesses: game.guesses.map((g) => vocab[g.i]) };
 }
 
-function loadGame(puzzle) {
-  const saved = store.get(`cx_v2_game_${puzzle}`, null);
-  if (!saved) return newGame(puzzle);
+function deserializeGame(saved, puzzle) {
+  if (!saved || !Array.isArray(saved.guesses)) return null;
   const guesses = saved.guesses.filter((w) => wordIndex.has(w)).map((w) => ({ i: wordIndex.get(w) }));
-  return { ...saved, guesses };
+  return { ...newGame(puzzle), ...saved, puzzle, guesses };
+}
+
+function saveGame(game) {
+  const sess = session();
+  if (!sess) return;
+  const data = serializeGame(game);
+  store.set(gameKey(sess.pseudo, game.puzzle), data);
+  rpc("cemantix_save_game", { p_token: sess.token, p_puzzle: game.puzzle, p_state: data }).catch(handleAuthError);
+}
+
+async function loadGame(puzzle) {
+  const sess = session();
+  let local = deserializeGame(store.get(gameKey(sess.pseudo, puzzle), null), puzzle);
+  // Partie commencée avant la création des comptes : on la rattache au premier joueur connecté
+  const legacy = deserializeGame(store.get(`cx_v2_game_${puzzle}`, null), puzzle);
+  if (legacy && !local) {
+    local = legacy;
+    try {
+      localStorage.removeItem(`cx_v2_game_${puzzle}`);
+    } catch {
+      /* rien */
+    }
+  }
+  let remote = null;
+  try {
+    remote = deserializeGame(await rpc("cemantix_load_game", { p_token: sess.token, p_puzzle: puzzle }), puzzle);
+  } catch (e) {
+    if (handleAuthError(e)) return null;
+  }
+  // On garde la version la plus avancée (la partie trouvée, sinon celle avec le plus de mots)
+  const score = (g) => (g ? (g.found ? 1e6 : 0) + g.guesses.length : -1);
+  const game = score(remote) >= score(local) ? remote : local;
+  return game || newGame(puzzle);
 }
 
 function showMessage(text) {
@@ -256,14 +307,11 @@ function renderWin() {
     box.hidden = true;
     return;
   }
-  const pseudo = store.get("cx_pseudo", "");
   const saveInfo = game.conflict
-    ? `ℹ️ Un résultat était déjà enregistré aujourd'hui pour « ${esc(pseudo)} » (autre appareil, ou un ami avec le même pseudo ?) : seul le premier compte.`
+    ? "ℹ️ Ton résultat du jour était déjà enregistré (depuis un autre appareil) : seul le premier compte."
     : game.saved
-    ? "✅ Résultat enregistré dans l'historique du groupe."
-    : pseudo
-      ? "⏳ Enregistrement du résultat…"
-      : `<button class="link" type="button" onclick="askPseudo()">Choisis un pseudo</button> pour enregistrer ton résultat.`;
+      ? "✅ Résultat enregistré dans l'historique du groupe."
+      : "⏳ Enregistrement du résultat…";
   const closest = day.order.slice(1, 101).map((idx, r) =>
     `<li><span>${esc(vocab[idx])}</span><span>${fmtTemp(day.scores[idx])} °C</span><span>${TOP - r - 1}</span></li>`).join("");
   box.innerHTML = `
@@ -298,7 +346,7 @@ function submitGuess(raw) {
     return;
   }
   const { game } = state;
-  if (!raw.trim()) return;
+  if (!game || !raw.trim()) return;
   const i = lookup(raw);
   if (i == null) {
     showMessage(`Je ne connais pas le mot « ${raw.trim()} ».`);
@@ -331,23 +379,54 @@ function submitGuess(raw) {
 // ---------- Pseudo ----------
 
 function renderPseudo() {
-  const p = store.get("cx_pseudo", "");
-  $("pseudo-btn").textContent = p ? `👤 ${p}` : "👤 Choisir un pseudo";
+  const sess = session();
+  $("pseudo-btn").textContent = sess ? `👤 ${sess.pseudo} · changer` : "👤 Se connecter";
 }
 
 function askPseudo() {
-  $("pseudo-input").value = store.get("cx_pseudo", "");
-  $("pseudo-dialog").showModal();
+  const sess = session();
+  $("pseudo-input").value = sess ? sess.pseudo : store.get("cx_pseudo", "");
+  $("password-input").value = "";
+  $("login-error").textContent = "";
+  if (!$("pseudo-dialog").open) $("pseudo-dialog").showModal();
+  ($("pseudo-input").value ? $("password-input") : $("pseudo-input")).focus();
 }
 window.askPseudo = askPseudo;
 
-$("pseudo-form").addEventListener("submit", () => {
-  const p = $("pseudo-input").value.trim().slice(0, 24);
-  if (!p) return;
-  store.set("cx_pseudo", p);
-  renderPseudo();
-  if (state.game && state.game.found && !state.game.saved) saveResult(state.game);
+$("pseudo-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("login-btn");
+  btn.disabled = true;
+  $("login-error").textContent = "";
+  try {
+    const old = session();
+    const res = await rpc("cemantix_login", { p_pseudo: $("pseudo-input").value, p_password: $("password-input").value });
+    if (old) rpc("cemantix_logout", { p_token: old.token }).catch(() => {});
+    store.set("cx_session", { pseudo: res.pseudo, token: res.token });
+    $("pseudo-dialog").close();
+    renderPseudo();
+    if (res.created) showMessage(`Compte « ${res.pseudo} » créé. Retiens bien ton mot de passe !`);
+    await startGame();
+  } catch (err) {
+    $("login-error").textContent = err.message || "Connexion impossible, vérifie ta connexion internet.";
+  } finally {
+    btn.disabled = false;
+  }
 });
+
+$("pseudo-btn").addEventListener("click", () => {
+  const sess = session();
+  if (sess && !confirm(`Te déconnecter de « ${sess.pseudo} » pour changer de joueur ?`)) return;
+  if (sess) {
+    rpc("cemantix_logout", { p_token: sess.token }).catch(() => {});
+    store.set("cx_session", null);
+    state.game = null;
+    renderPseudo();
+    renderGame();
+  }
+  askPseudo();
+});
+$("login-open").addEventListener("click", askPseudo);
 
 // ---------- Classement & historique ----------
 
@@ -368,7 +447,7 @@ async function renderToday() {
       box.innerHTML = "<p>Personne n'a encore trouvé le mot d'aujourd'hui. À toi de jouer !</p>";
       return;
     }
-    const me = store.get("cx_pseudo", "").toLowerCase();
+    const me = (session()?.pseudo || "").toLowerCase();
     box.innerHTML = `<table class="board"><thead><tr><th></th><th>Joueur</th><th>Essais</th><th>Temps</th><th>Heure</th></tr></thead><tbody>
       ${rows.map((r, k) => `<tr class="${r.pseudo.toLowerCase() === me ? "me" : ""}">
         <td>${["🥇", "🥈", "🥉"][k] || k + 1}</td><td>${esc(r.pseudo)}</td><td>${r.tries}</td>
@@ -474,9 +553,37 @@ $("guess-form").addEventListener("submit", (e) => {
   input.focus();
 });
 
-$("pseudo-btn").addEventListener("click", askPseudo);
 
 // ---------- Démarrage ----------
+
+// Affiche la partie du joueur connecté (ou l'invitation à se connecter)
+function renderGame() {
+  const game = state.game;
+  $("login-needed").hidden = !!game;
+  $("guess-form").hidden = !game || game.found;
+  if (!game) {
+    $("guesses").hidden = true;
+    $("distance").hidden = true;
+    $("win").hidden = true;
+    showMessage("");
+    return;
+  }
+  renderGuesses();
+  renderWin();
+}
+
+async function startGame() {
+  state.game = null;
+  state.last = null;
+  if (session()) state.game = await loadGame(state.puzzle);
+  renderGame();
+  if (!state.game) {
+    if (!session()) askPseudo();
+    return;
+  }
+  if (state.game.found && !state.game.saved) saveResult(state.game);
+  else if (!state.game.found) $("guess-input").focus();
+}
 
 async function init() {
   renderPseudo();
@@ -492,18 +599,12 @@ async function init() {
     $("status").textContent = typeof DecompressionStream === "undefined"
       ? "Ton navigateur est trop ancien pour ce jeu : mets-le à jour (ou essaie Chrome / Firefox / Safari récent)."
       : state.puzzle < 1
-      ? "Le jeu n'a pas encore commencé, reviens bientôt !"
-      : "Impossible de charger le mot du jour (ou plus de mots disponibles).";
+        ? "Le jeu n'a pas encore commencé, reviens bientôt !"
+        : "Impossible de charger le mot du jour (ou plus de mots disponibles).";
     return;
   }
   $("status").textContent = `Mot secret n°${state.puzzle} — ${puzzleDate(state.puzzle)}`;
-  state.game = loadGame(state.puzzle);
-  $("guess-form").hidden = state.game.found;
-  renderGuesses();
-  renderWin();
-  if (state.game.found && !state.game.saved) saveResult(state.game);
-  if (!store.get("cx_pseudo", "")) askPseudo();
-  else if (!state.game.found) $("guess-input").focus();
+  await startGame();
 }
 
 init();
